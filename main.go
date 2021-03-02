@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/bharris183/travel_alerts/innternal/app"
-	"github.com/bharris183/travel_alerts/innternal/db"
+	"github.com/bharris183/travel_alerts/internal/app"
+	"github.com/bharris183/travel_alerts/internal/db"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 )
@@ -17,12 +17,14 @@ func main() {
 		fmt.Println("Connection open failure")
 		panic(err.Error())
 	}
-	defer db.Close()
+	defer database.Close()
 
 	app := &app.App{
 		Router:   mux.NewRouter(),
 		Database: database,
 	}
+
+	app.SetRoutes()
 
 	log.Fatal(http.ListenAndServe(":8000", app.Router))
 

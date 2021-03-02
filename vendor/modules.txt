@@ -1,0 +1,11 @@
+# github.com/go-sql-driver/mysql v1.5.0
+## explicit
+github.com/go-sql-driver/mysql
+# github.com/gorilla/mux v1.8.0
+## explicit
+github.com/gorilla/mux
+# github.com/paulrosania/go-charset v0.0.0-20190326053356-55c9d7a5834c
+github.com/paulrosania/go-charset/charset
+# github.com/ungerik/go-rss v0.0.0-20200405130036-81ac15598626
+## explicit
+github.com/ungerik/go-rss

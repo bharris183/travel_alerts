@@ -1,4 +1,4 @@
-grant all privileges on *.* to 'root'@'%' identified by 'sw0rdfish';
+--grant all privileges on *.* to 'root'@'%' identified by 'sw0rdfish';
 
 CREATE DATABASE IF NOT EXISTS threat_alerts CHARACTER SET latin1 COLLATE latin1_swedish_ci;
 
