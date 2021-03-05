@@ -1,0 +1,28 @@
+package app
+
+import (
+	"database/sql"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"github.com/gorilla/mux"
+
+)
+
+type App struct {
+	Router   *mux.Router
+	Database *sql.DB
+	Threats []Threat
+}
+
+func (app *App) SetRoutes() {
+	app.Router.
+		Methods("GET").
+		Path("/threats/{cc}").
+		HandlerFunc(app.Threats.getThreats)
+
+	app.Router.
+		Methods("GET").
+		Path("/rssthreats").
+		HandlerFunc(threats.getThreatsFromRss)
+}
