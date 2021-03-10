@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+    "text/template"
 	"log"
     "net/http"
     "encoding/json"
@@ -41,44 +42,70 @@ func (a *App) Run(addr string) {
 }
 
 func (a *App) initializeRoutes() {
-    a.Router.HandleFunc("/threat/{country}", a.getThreat).Methods("GET")
-    //a.Router.HandleFunc("/rss", a.getThreatsFromRss).Methods("GET")
-    a.Router.HandleFunc("/update", a.updateThreatsFromRss).Methods("GET")
+    a.Router.HandleFunc("/threat/json/{country}", a.getThreatJSON).Methods("GET")
+    a.Router.HandleFunc("/threat/html/{country}", a.getThreatHTML).Methods("GET")
+    a.Router.HandleFunc("/load", a.loadThreatsFromRss).Methods("GET")
 }
 
 // Get a single threat from a country code
-func (a *App) getThreat(w http.ResponseWriter, r *http.Request) {
-    a.addThreat()
+func (a *App) getThreatJSON(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
     countryCode, _ := vars["country"]
+    t, ex := a.getThreat(countryCode)
+    if ex == "" {
+        respondWithJSON(w, http.StatusOK, t)
+    } else {
+        respondWithErrorJSON(w, 500, ex)
+    }
+}
 
-    // ToDo Verify country
-    //respondWithError(w, http.StatusBadRequest, "Invalid product Country")
- 
+func (a *App) getThreatHTML(w http.ResponseWriter, r *http.Request) {
+    vars := mux.Vars(r)
+    countryCode, _ := vars["country"]
+    t, ex := a.getThreat(countryCode)
+    if ex == "" {
+        respondWithHTML(w, t)
+    } else {
+        respondWithErrorHTML(w, ex)
+    }
+}
+
+func (a *App) getThreat(countryCode string) (threat, string) {
     t := threat{CountryCode: countryCode}
     if err := t.getThreat(a.DB); err != nil {
         switch err {
         case sql.ErrNoRows:
-            respondWithError(w, http.StatusNotFound, "Threats not found")
+            return t, "Threats not found for country " + countryCode
         default:
-            respondWithError(w, http.StatusInternalServerError, err.Error())
+            return t, err.Error()
         }
-        return
     }
-
-    respondWithJSON(w, http.StatusOK, t)
+    return t, ""
 }
 
-func respondWithError(w http.ResponseWriter, code int, message string) {
+func respondWithErrorJSON(w http.ResponseWriter, code int, message string) {
     respondWithJSON(w, code, map[string]string{"error": message})
+}
+
+func respondWithErrorHTML(w http.ResponseWriter, message string) {
+    type errmsg struct {
+        Message string
+    }
+    errMsg := errmsg{Message: message}
+    tmpl := template.Must(template.ParseFiles("error.html")) 
+    tmpl.Execute(w, errMsg)
 }
 
 func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
     response, _ := json.Marshal(payload)
-
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(code)
     w.Write(response)
+}
+
+func respondWithHTML(w http.ResponseWriter, payload interface{}) {
+    tmpl := template.Must(template.ParseFiles("threat.html")) 
+    tmpl.Execute(w, payload)
 }
 
 func (a *App) addThreat() {
@@ -158,7 +185,7 @@ func getCountryCode(category []string) string {
 	return ""
 }
 
-func (a *App) updateThreatsFromRss(w http.ResponseWriter, r *http.Request) {
+func (a *App) loadThreatsFromRss(w http.ResponseWriter, r *http.Request) {
     t := threats{LastUpdated: time.Now()}
     t.Threats = a.getThreatsFromRss()
     rowsUpdated, err := t.loadThreatsInDatbase(a.DB)

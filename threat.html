@@ -1,0 +1,22 @@
+<html>
+    <head>
+        <style type="text/css">
+            body {
+                background-color: linen;
+                font-family: Verdana, Geneva, Tahoma, sans-serif;
+            }
+            .threatlevel4 h3 {
+                color:red;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>State Department Travel Alerts</h1>
+        <div class="threatlevel{{.ThreatLevel}}">
+            <h3>{{.Title}}</h3>
+            <p class="description">{{.Description}}</p>
+            <p class="link"><a href="{{.Link}}">{{.Link}}</a></p>
+            <p class="pubdate">Updated on {{.PubDate}}</p>
+        </div>
+    </body>
+</html>

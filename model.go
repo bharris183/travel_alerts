@@ -40,7 +40,14 @@ func (t *threat) getThreat(db *sql.DB) error {
 
 func (t *threats) loadThreatsInDatbase(db *sql.DB) (rowsUpdated int, err error) {
 	// For now we will not do anything with t.LastUpdated
-	
+
+	// Delete old entries - there are only 200 or so threats at any one time
+	delete, err := db.Query("delete from RSS_THREATS")
+	if err != nil {
+		panic(err.Error())
+	}
+	defer delete.Close()
+
 	query := "insert into RSS_THREATS (COUNTRY_CODE, THREAT_LEVEL, TITLE, LINK, DESCRIPTION, PUB_DATE) values "
 	var inserts []string
 	var params []interface{}
@@ -50,7 +57,7 @@ func (t *threats) loadThreatsInDatbase(db *sql.DB) (rowsUpdated int, err error) 
 	}
     queryVals := strings.Join(inserts, ",")
     query = query + queryVals
-    log.Println("query is", query)
+    //log.Println("query is", query)
 	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelfunc()
     stmt, err := db.PrepareContext(ctx, query)
