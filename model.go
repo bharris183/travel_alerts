@@ -31,16 +31,29 @@ const sqlInsertThreat = `insert into RSS_THREATS
 		LINK, DESCRIPTION, PUB_DATE) values 
 	(?, ?, ?, ?, ?, ?)`
 
+var tCache = make(map[string] threat)
 
 func (t *threat) getThreat(db *sql.DB) error {
-    return db.QueryRow(sqlGetThreat, t.CountryCode).Scan(
-		&t.CountryCode, &t.ThreatLevel, &t.Title, &t.Link, &t.Description, &t.PubDate)
+	tFromCache, found := tCache[t.CountryCode]
+	if found {
+		log.Println("Threat from cache for country ", t.CountryCode)
+		*t = tFromCache
+		return nil
+	} else {
+		db.QueryRow(sqlGetThreat, t.CountryCode).Scan (
+			&t.CountryCode, &t.ThreatLevel, &t.Title, &t.Link, &t.Description, &t.PubDate)
+		log.Println("Threat from database for country ", t.CountryCode)
+		tCache[t.CountryCode] = *t
+		return nil
+	}
 }
 
 
 func (t *threats) loadThreatsInDatbase(db *sql.DB) (rowsUpdated int, err error) {
 	// For now we will not do anything with t.LastUpdated
 
+	// Delete the cache
+	tCache = make(map[string] threat)
 	// Delete old entries - there are only 200 or so threats at any one time
 	delete, err := db.Query("delete from RSS_THREATS")
 	if err != nil {

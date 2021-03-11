@@ -71,7 +71,7 @@ func (a *App) getThreatHTML(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) getThreat(countryCode string) (threat, string) {
-    t := threat{CountryCode: countryCode}
+    t := threat{CountryCode: strings.ToUpper(countryCode)}
     if err := t.getThreat(a.DB); err != nil {
         switch err {
         case sql.ErrNoRows:
