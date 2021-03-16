@@ -55,7 +55,7 @@ func (a *App) getThreatJSON(w http.ResponseWriter, r *http.Request) {
     if ex == "" {
         respondWithJSON(w, http.StatusOK, t)
     } else {
-        respondWithErrorJSON(w, 500, ex)
+        respondWithErrorJSON(w, http.StatusBadRequest, ex)
     }
 }
 
@@ -75,7 +75,7 @@ func (a *App) getThreat(countryCode string) (threat, string) {
     if err := t.getThreat(a.DB); err != nil {
         switch err {
         case sql.ErrNoRows:
-            return t, "Threats not found for country " + countryCode
+            return t, "Threat not found for country " + countryCode
         default:
             return t, err.Error()
         }

@@ -1,22 +1,23 @@
 package main
 
 import (
-	"net/http"
-	"net/http/httptest"
 	"testing"
-	"github.com/gorilla/mux"
 )
 
-func TestGreeter(t *testing.T) {
-	w := httptest.NewRecorder()
-	r := mux.NewRouter()
-	Greeter("Hello").AddRoute(r)
-	r.ServeHTTP(w, httptest.NewRequest("GET", "/greet/Hodor", nil))
-
-	if w.Code != http.StatusOK {
-		t.Error("Did not get expected HTTP status code, got", w.Code)
+func TestGetThreatLevel(t *testing.T) {
+	tCategory := []string {"Level 2: Exercise Increased Caution", "foo"}
+	got := getThreatLevel(tCategory)
+	want := "2"
+	if got != want {
+		t.Errorf("getThreatLevel Failure. Wanted %s. Got %s\n", want, got)
 	}
-	if w.Body.String() != "Hello Hodor!" {
-		t.Error("Did not get expected greeting, got", w.Body.String())
+}
+
+func TestGetThreatLevelBadInput(t *testing.T) {
+	tCategory := []string {"foo", "foo"}
+	got := getThreatLevel(tCategory)
+	want := ""
+	if got != want {
+		t.Errorf("getThreatLevel Failure. Wanted %s. Got %s\n", want, got)
 	}
 }

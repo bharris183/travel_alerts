@@ -40,11 +40,16 @@ func (t *threat) getThreat(db *sql.DB) error {
 		*t = tFromCache
 		return nil
 	} else {
-		db.QueryRow(sqlGetThreat, t.CountryCode).Scan (
+		err := db.QueryRow(sqlGetThreat, t.CountryCode).Scan (
 			&t.CountryCode, &t.ThreatLevel, &t.Title, &t.Link, &t.Description, &t.PubDate)
-		log.Println("Threat from database for country ", t.CountryCode)
-		tCache[t.CountryCode] = *t
-		return nil
+		if err != nil {
+			log.Println("Threat not found for country ", t.CountryCode)
+			return err
+		} else {
+			log.Println("Threat from DB for country ", t.CountryCode)
+			tCache[t.CountryCode] = *t
+			return nil
+		}
 	}
 }
 

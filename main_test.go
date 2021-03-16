@@ -1,10 +1,12 @@
 package main
 
 import (
-    "net/http"
+	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"os"
 	"encoding/json"
+	"reflect"
 	"testing"   
     "log"
 )
@@ -51,18 +53,18 @@ const tableCreationQuery = `CREATE  TABLE IF NOT EXISTS threat_alerts.RSS_THREAT
 	PRIMARY KEY (COUNTRY_CODE)
 )`
 
-func TestGetThreatsForNonesxistentCountry(t *testing.T) {
+func TestGetThreatForNonesxistentCountry(t *testing.T) {
     clearTable()
 
-    req, _ := http.NewRequest("GET", "/threat/XX", nil)
+    req, _ := http.NewRequest("GET", "/threat/json/XX", nil)
     response := executeRequest(req)
 
-    checkResponseCode(t, http.StatusNotFound, response.Code)
+    checkResponseCode(t, http.StatusBadRequest, response.Code)
 
     var m map[string]string
     json.Unmarshal(response.Body.Bytes(), &m)
-    if m["error"] != "Threats not found" {
-        t.Errorf("Expected the 'error' key of the response to be set to 'Threats not found'. Got '%s'", m["error"])
+    if m["error"] != "Threat not found for country XX" {
+        t.Errorf("Expected the 'error' key of the response to be set to 'Threat not found for country XX' . Got '%s'", m["error"])
     }
 }
 
@@ -70,10 +72,50 @@ func TestGetThreat(t *testing.T) {
     clearTable()
     addThreat()
 
-    req, _ := http.NewRequest("GET", "/threat/SN", nil)
+    req, _ := http.NewRequest("GET", "/threat/json/SN", nil)
     response := executeRequest(req)
 
+	fmt.Println(response)
+
     checkResponseCode(t, http.StatusOK, response.Code)
+
+    var m map[string]string
+    json.Unmarshal(response.Body.Bytes(), &m)
+    if m["error"] != "" {
+        t.Errorf("Expected no error. Got '%s'", m["error"])
+	}
+	checkExpectedResponse(t, m)
+}
+
+func checkExpectedResponse(t *testing.T, m map[string]string) {
+	var want, got string
+	var wantGot = "Expected '%s', got %s"
+	want = "SN"
+	got = m["countrycode"] 
+	if got != want {
+		t.Errorf(wantGot, want, got)
+	}
+	//want = "3"
+	got = m["threatlevel"]
+	fmt.Println(reflect.TypeOf(got).String())
+	//if got != want {
+	//	t.Errorf(wantGot, want, got)
+	//}
+	want = "Senegal is safe, mostly"
+	got = m["title"] 
+	if got != want {
+		t.Errorf(wantGot, want, got)
+	}
+	want = "Senegal is a lovely place. Just stick to your hotel."
+	got = m["description"] 
+	if got != want {
+		t.Errorf(wantGot, want, got)
+	}
+	want = "2021-05-11T00:00:00Z"
+	got = m["pubdate"] 
+	if got != want {
+		t.Errorf(wantGot, want, got)
+	}
 }
 
 func addThreat() {
