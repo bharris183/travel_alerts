@@ -1,0 +1,20 @@
+version: '3'
+ 
+services:
+  db:
+    image: mysql/mysql-server:5.7
+    container_name: db
+    environment:
+      MYSQL_ROOT_PASSWORD: sw0rdfish
+      MYSQL_DATABASE: threat_alerts
+      MYSQL_USER: sa_threatalerts
+      MYSQL_PASSWORD: sw0rdfish
+    ports:
+      - "6033:3306"
+    volumes:
+      - "./scripts/schema.sql:/docker-entrypoint-initdb.d/1.sql"
+      - "./scripts/data.sql:/docker-entrypoint-initdb.d/2.sql"
+      - dbdata:/var/lib/mysql
+      
+volumes:
+  dbdata:

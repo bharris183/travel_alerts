@@ -7,6 +7,7 @@ import (
 	"log"
     "net/http"
     "encoding/json"
+    "regexp"
     "strconv"
     "strings"
     "time"
@@ -23,8 +24,10 @@ type App struct {
 
 func (a *App) Initialize(user, password, dbname string) {
     
-    serverName := "127.0.0.1:6033"
+    //serverName := "127.0.0.1:3306"
+    serverName := "fullstack-mysql:3306"
     dbconn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=true&multiStatements=true", user, password, serverName, dbname)
+    //fmt.Println(dbconn)
     var err error
     a.DB, err = sql.Open("mysql", dbconn)
     if err != nil {
@@ -71,6 +74,10 @@ func (a *App) getThreatHTML(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) getThreat(countryCode string) (threat, string) {
+    var lettersOnly = regexp.MustCompile(`^[a-zA-Z]+$`).MatchString
+    if (!lettersOnly(countryCode) || len(countryCode) != 2) {
+        return threat{CountryCode: strings.ToUpper(countryCode)}, "Invalid country code"
+    }
     t := threat{CountryCode: strings.ToUpper(countryCode)}
     if err := t.getThreat(a.DB); err != nil {
         switch err {
@@ -188,6 +195,7 @@ func getCountryCode(category []string) string {
 func (a *App) loadThreatsFromRss(w http.ResponseWriter, r *http.Request) {
     t := threats{LastUpdated: time.Now()}
     t.Threats = a.getThreatsFromRss()
+    fmt.Println(t.Threats)
     rowsUpdated, err := t.loadThreatsInDatbase(a.DB)
     if err != nil {
         fmt.Printf("Error loading threats from rss: %s", err)

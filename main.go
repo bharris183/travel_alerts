@@ -11,7 +11,7 @@ func main() {
 		os.Getenv("MYSQL_USER"),
 		os.Getenv("MYSQL_PASSWORD"),
 		os.Getenv("MYSQL_DATABASE"),
-*/
+/*/
 		"sa_threatalerts",
 		"sw0rdfish",
 		"threat_alerts",
