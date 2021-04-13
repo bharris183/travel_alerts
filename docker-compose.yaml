@@ -4,7 +4,11 @@ services:
     container_name: full_app
     build: .
     ports: 
-      - 8010:8010 
+      - 8010:8010
+    environment:
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
     restart: on-failure
     volumes:
       - api:/usr/src/app/
